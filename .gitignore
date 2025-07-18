@@ -1,0 +1,6 @@
+.env
+bots.db
+test.py
+__pycache__
+logs
+.vscode

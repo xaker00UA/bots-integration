@@ -1,0 +1,37 @@
+[project]
+name = "bots"
+version = "0.1.0"
+description = "Боты для отображение сессий Wotblitz"
+authors = [
+    {name = "Ivan",email = "ivanbozhkod@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "aiohttp (>=3.12.14,<4.0.0)",
+    "pydentic (>=0.0.1.dev3,<0.0.2)",
+    "sqlalchemy (>=2.0.41,<3.0.0)",
+    "loguru (>=0.7.3,<0.8.0)",
+    "aiogram (>=3.21.0,<4.0.0)",
+    "discord-py (>=2.5.2,<3.0.0)",
+    "pydantic-settings (>=2.10.1,<3.0.0)",
+    "fastapi (>=0.116.1,<0.117.0)",
+    "uvicorn (>=0.35.0,<0.36.0)",
+    "aiosqlite (>=0.21.0,<0.22.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+black = "^25.1.0"
+isort = "^6.0.1"
+datamodel-code-generator = {extras = ["http"], version = "^0.31.2"}
+poethepoet = "^0.36.0"
+
+
+[tool.poe.tasks]
+gen = "datamodel-codegen --url http://testserver.ua/openapi.json --encoding utf-8 --input-file-type openapi --output src/models/model.py  --target-python-version 3.12"
