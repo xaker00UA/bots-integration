@@ -22,8 +22,6 @@ class ServerSettings(BaseModel):
     PREFIX: str = "api"
     VERSION: str | None = None
 
-    DEV_GUILD_ID: int
-
     DISCORD_TOKEN: str
 
     @property
