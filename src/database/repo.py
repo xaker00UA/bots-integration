@@ -89,6 +89,7 @@ class Repository:
             .where(OrmAccount.session_id == session_id)
             .values(primary=True)
         )
+        await self.session.execute(stmt)
 
     async def delete_account(self, session_id: str):
         stmt = delete(OrmAccount).where(OrmAccount.session_id == session_id)

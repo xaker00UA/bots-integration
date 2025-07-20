@@ -6,7 +6,9 @@ from contextlib import asynccontextmanager
 from loguru import logger as log
 
 
-engine = create_async_engine(f"sqlite+aiosqlite:///{settings.DATABASE.SQLITE_PATH}")
+engine = create_async_engine(
+    f"sqlite+aiosqlite:///{settings.DATABASE.SQLITE_PATH}", echo=True
+)
 
 
 SessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)

@@ -71,7 +71,7 @@ class UserCommands(app_commands.Group):
     ):
         await interaction.response.defer(thinking=True)
         embed = await ProcessingSession().get(
-            name=name, region=region.value, user_id=interaction.user.id
+            name=name, region=region.value, user_id=interaction.user.id, type="discord"
         )
         await interaction.followup.send(embed=embed)
 
