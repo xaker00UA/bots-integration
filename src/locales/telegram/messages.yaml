@@ -1,0 +1,51 @@
+start:
+  message: "Привет! Я бот для получения статистики World of Tanks Blitz"
+
+help:
+  message: |
+    Доступные команды:
+    /get — можно указать имя игрока и регион, если не указан — будет использоваться основная сессия
+    /add для добавления сессии введите имя и регион 
+    можно также указать алиас для отображения сессии по дефолту имя игрока
+    # example 
+    /add xakerUA eu Твинк
+    /add xakerUA/142341324 eu Твинк
+    /add xakerUA@eu 
+
+    /set_primary — установить основную сессию
+    /delete_session — удалить сессию
+    /reset_session — сбросить сессию
+    /get_session — получить статистику сессии
+
+set_primary:
+  success: Сессия установлена как основная
+  error:
+
+delete_session:
+  success: Сессия удалена
+  error:
+
+add:
+  success: Сессия добавлена {name}@{region}
+  error: Не удалось распарсить имя и регион
+reset_session:
+  success: Сессия сброшена
+  error:
+
+#GET
+get_session:
+  success: |
+    📊 Статистика игрока <b>{name}@{region.value}</b>
+
+    📅 Бои за сессию: {general_session_all_battles}
+    ✅ Победы за сессию: {general_session_all_winrate}%
+    🔫 Средний урон за сессию: {general_session_all_damage}
+    🔎 Средняя точность за сессию: {general_session_all_accuracy}%
+       Средняя выжываемость за сессию: {general_session_all_survival}%
+    ⏳ Время сессии {time}
+
+    {ratting}
+    -----------------------------------------------
+    {tanks}
+  no_battle: Нет боев за сессию сыграйте бой в рандоме
+  error: Сессия не найдена

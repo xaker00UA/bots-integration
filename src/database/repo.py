@@ -1,4 +1,4 @@
-from src.error.exseption import AccountError
+from src.error.exception import AccountError
 from src.database.orm_model import OrmUserDiscord, OrmUserTelegram, OrmAccount
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, select, and_, update
@@ -25,10 +25,18 @@ class Repository:
         return user
 
     async def get_user_telegram(self, telegram_id: int) -> OrmUserTelegram | None:
-        return await self.session.get(OrmUserTelegram, telegram_id)
+        stmt = (
+            select(OrmUserTelegram)
+            .options(joinedload(OrmUserTelegram.accounts))
+            .where(OrmUserTelegram.telegram_id == telegram_id)
+        )
+        result = await self.session.execute(stmt)
+        return result.unique().scalar_one_or_none()
 
-    async def create_user_telegram(self, telegram_id: int) -> OrmUserTelegram:
-        user = OrmUserTelegram(telegram_id=telegram_id)
+    async def create_user_telegram(
+        self, telegram_id: int, name: str
+    ) -> OrmUserTelegram:
+        user = OrmUserTelegram(telegram_id=telegram_id, name=name)
         self.session.add(user)
         return user
 

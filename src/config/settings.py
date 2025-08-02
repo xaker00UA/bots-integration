@@ -1,5 +1,4 @@
 from enum import Enum
-import os
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -18,11 +17,12 @@ class TokensSettings(BaseModel):
 class ServerSettings(BaseModel):
     PROTOCOL: str
     HOST: str
-    PORT: int
+    PORT: int = 80
     PREFIX: str = "api"
     VERSION: str | None = None
 
     DISCORD_TOKEN: str
+    TELEGRAM_TOKEN: str
 
     @property
     def base_url(self) -> str:
@@ -44,25 +44,13 @@ class AdminSettings(BaseModel):
     DISCORD_ADMIN_IDS: list[int] = []
 
 
-class TelegramAuthSettings(BaseModel):
-    CLIENT_ID: int
-    CLIENT_SECRET: str
-    REDIRECT_URL: str
-
-
 class DiscordAuthSettings(BaseModel):
     CLIENT_ID: int
     CLIENT_SECRET: str
     REDIRECT_URL: str
 
 
-class BotsSettings(BaseModel):
-    TELEGRAM: TelegramAuthSettings
-    DISCORD: DiscordAuthSettings
-
-
 class AuthSettings(BaseModel):
-    TELEGRAM: TelegramAuthSettings
     DISCORD: DiscordAuthSettings
 
 
@@ -78,7 +66,7 @@ class Settings(BaseSettings):
 
     DATABASE: DataBaseSettings
 
-    BOTS: BotsSettings
+    BOTS: AuthSettings
 
     model_config = SettingsConfigDict(
         case_sensitive=False,

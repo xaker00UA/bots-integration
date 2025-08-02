@@ -2,19 +2,29 @@ from src.models.model import RestUser
 from src.config.settings import settings
 from aiohttp import ClientSession
 from loguru import logger as log
+from datetime import datetime, timedelta
 
 
 class APIBackendServer:
-    def __init__(self) -> None:
+    def __init__(self, type: str = "discord") -> None:
         self.base_url = settings.SERVER.base_url
-        self.header = {"X-Token": settings.SERVER.DISCORD_TOKEN}
+        if type == "discord":
+            self.header = {"X-Token": settings.SERVER.DISCORD_TOKEN}
+        else:
+            self.header = {"X-Token": settings.SERVER.TELEGRAM_TOKEN}
 
     async def get_session_by_name_and_region(
         self, name: str, region: str
     ) -> RestUser | str:
         async with ClientSession() as session:
+
             async with session.get(
-                f"{self.base_url}/{region}/player/get_session/", params={"name": name}
+                f"{self.base_url}/{region}/player/period",
+                params={
+                    "name": name,
+                    "start_day": (datetime.now() - timedelta(days=1)).timestamp() - 25,
+                    "end_day": datetime.now().timestamp(),
+                },
             ) as response:
                 if response.status == 200:
                     data = await response.json()

@@ -32,6 +32,7 @@ class OrmUserTelegram(Base):
     telegram_id: Mapped[int] = mapped_column(
         BigInteger, primary_key=True, autoincrement=True
     )
+    name: Mapped[str]
 
     accounts: Mapped[list["OrmAccount"]] = relationship()
 

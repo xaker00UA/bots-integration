@@ -34,6 +34,7 @@ class UserCommands(app_commands.Group):
 
         service = ProcessingSession()
         await service.create_session(
+            user_name=interaction.user.name,
             discord_id=interaction.user.id,
             name=name,
             region=region.value,
@@ -81,11 +82,11 @@ class UserCommands(app_commands.Group):
         if isinstance(error, app_commands.CommandInvokeError):
             if interaction.response.is_done():
                 await interaction.followup.send(
-                    f"⚠️ Локальная ошибка: {str(error.original)}", ephemeral=True
+                    f"{str(error.original)}", ephemeral=True
                 )
             else:
                 await interaction.response.send_message(
-                    f"⚠️ Локальная ошибка:{str(error.original)}", ephemeral=True
+                    f"{str(error.original)}", ephemeral=True
                 )
         log.exception(
             f"Ошибка в команде: {type(error).__name__} — {error}",

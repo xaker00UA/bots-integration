@@ -1,12 +1,15 @@
 from functools import wraps
 import inspect
+
 from src.database.repo import Repository
 from src.database.core import get_session
 from src.service.api import APIBackendServer
-from src.error.exseption import *
+from src.error.exception import *
 from src.discord_bot_stats.utils.message_generation import generate_player_stats_embed
 from src.config.logging import discord_logger as log
 from loguru import logger as log
+
+from src.telegram_bot_stats.utils.message_generation import GenerateStatsMessage
 
 
 def log_call(method):
@@ -29,14 +32,19 @@ class ProcessingSession:
 
     @log_call
     async def create_session(
-        self, name: str, region: str, discord_id: int, name_session: str | None
+        self,
+        user_name: str,
+        name: str,
+        region: str,
+        discord_id: int,
+        name_session: str | None,
     ):
         async with get_session() as session:
             user = await Repository(session).get_user_discord(discord_id)
             primary = False
             if not user:
                 await Repository(session).create_user_discord(
-                    discord_id=discord_id, name=name
+                    discord_id=discord_id, name=user_name
                 )
                 primary = True
             else:
@@ -50,9 +58,12 @@ class ProcessingSession:
                 primary=primary,
             )
 
-    async def get_sessions(self, discord_id: int):
+    async def get_sessions(self, _id: int, type: str = "discord"):
         async with get_session() as session:
-            res = await Repository(session).get_user_discord(discord_id)
+            if type == "discord":
+                res = await Repository(session).get_user_discord(_id)
+            else:
+                res = await Repository(session).get_user_telegram(_id)
             if not res:
                 raise UserError()
             if len(res.accounts) == 0:
@@ -66,7 +77,7 @@ class ProcessingSession:
     @log_call
     async def delete_session(self, session_id: str):
         async with get_session() as session:
-            res = await self.api.delete_session(session_id)
+            await self.api.delete_session(session_id)
             await Repository(session).delete_account(session_id)
 
     @log_call
@@ -101,3 +112,65 @@ class ProcessingSession:
                 response = await self.api.get_session_by_id(primary_ses.session_id)
         embed = generate_player_stats_embed(response)
         return embed
+
+
+class TelegramProcessing(ProcessingSession):
+    def __init__(self) -> None:
+        self.api = APIBackendServer(type="telegram")
+        self.service_generate_message = GenerateStatsMessage()
+
+    @log_call
+    async def create_session(
+        self,
+        user_name: str,
+        name: str,
+        region: str,
+        telegram_id: int,
+        name_session: str | None,
+    ):
+        async with get_session() as session:
+            user = await Repository(session).get_user_telegram(telegram_id)
+            primary = False
+            if not user:
+                await Repository(session).create_user_telegram(
+                    telegram_id=telegram_id, name=user_name
+                )
+                primary = True
+            else:
+                if len(user.accounts) >= 5:
+                    raise ToManySessions()
+            user = await self.api.add_session(name, region)
+            await Repository(session).add_account(
+                **user,
+                telegram_user_id=telegram_id,
+                name_session=name_session,
+                primary=primary,
+            )
+
+    async def get_sessions(self, _id, type="telegram"):
+        return await super().get_sessions(_id, type)
+
+    @log_call
+    async def get(
+        self,
+        /,
+        name: str | None = None,
+        region: str | None = None,
+        session_id: str | None = None,
+        type: str | None = None,
+        user_id: int | None = None,
+    ) -> str:
+        if session_id:
+            response = await self.api.get_session_by_id(session_id)
+        if name and region:
+            response = await self.api.get_session_by_name_and_region(name, region)
+        if type and user_id:
+            async with get_session() as session:
+                primary_ses = await Repository(session).get_primary_account_by_user_id(
+                    type, user_id
+                )
+                if not primary_ses:
+                    raise AccountError()
+                response = await self.api.get_session_by_id(primary_ses.session_id)
+        text = self.service_generate_message.send_message(response)
+        return text
