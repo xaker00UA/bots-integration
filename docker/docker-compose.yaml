@@ -2,14 +2,10 @@ services:
   bots:
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: bots
     env_file:
-      - .env
+      - ../.env
     volumes:
-      - bd:/app/bots.db
+      - ../bots.db:/app/bots.db
     command: "python3 main.py"
-  volumes:
-    bd:
-      driver: local
-  

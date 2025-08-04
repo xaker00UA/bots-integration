@@ -51,7 +51,7 @@ class GenerateStatsMessage:
             all_stats = tank.get("all", {})
             lines.append(
                 f"<b>{tank.get('name')}</b> (уровень: {tank.get('level')})\n"
-                f" Бои: {all_stats.get('battles', 0)}, \n"
+                f"Бои: {all_stats.get('battles', 0)}, \n"
                 f"Победы: {all_stats.get('winrate', 0)}%, \n"
                 f"Урон: {all_stats.get('damage', 0)}\n"
                 f"Точность: {all_stats.get('accuracy', 0)}%, \n"
@@ -72,14 +72,15 @@ class GenerateStatsMessage:
     def render_rating(self, rating: dict) -> str:
         if not rating:
             return "❌ Нет данных о рейтинге."
-        string = f"""-----------------------------------------------
-        \n🛡️ <b>Рейтинг:</b>\n
-        Бои: {rating.get('battles', 0)}, \n"
-        f"Победы: {rating.get('winrate', 0)}%, \n"
-        f"Урон: {rating.get('damage', 0)},\n"
-        f"Точность: {rating.get('accuracy', 0)}%, \n"
-        f"Выжываемость: {rating.get('survival', 0)}%, \n"
-        """
+        string = (
+            "-----------------------------------------------\n"
+            "🛡️<b>Рейтинг:</b>\n"
+            f"Бои: {rating.get('battles', 0)}\n"
+            f"Победы: {rating.get('winrate', 0)}%\n"
+            f"Урон: {rating.get('damage', 0)}\n"
+            f"Точность: {rating.get('accuracy', 0)}%\n"
+            f"Выживаемость: {rating.get('survival', 0)}%"
+        )
         return string
 
     def send_message(self, user: RestUser | str) -> str:

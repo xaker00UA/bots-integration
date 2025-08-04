@@ -22,17 +22,41 @@ class APIBackendServer:
                 f"{self.base_url}/{region}/player/period",
                 params={
                     "name": name,
-                    "start_day": (datetime.now() - timedelta(days=1)).timestamp() - 25,
-                    "end_day": datetime.now().timestamp(),
+                    "start_day": int(
+                        (datetime.now() - timedelta(days=1)).timestamp() - 25
+                    ),
+                    "end_day": int(datetime.now().timestamp()),
                 },
             ) as response:
                 if response.status == 200:
                     data = await response.json()
                     return RestUser.model_validate(data)
+                elif response.status == 404:
+                    data = await response.json()
+                    if data["detail"] in "Игрок не отслеживается с аргументами":
+                        return await self.add_player(name, region)
                 elif response.status < 500:
                     data = await response.json()
                     return data["detail"]
                 else:
+                    log.error(await response.json())
+                    return "Ошибка сервера"
+
+    async def add_player(self, name: str, region: str):
+        async with ClientSession() as session:
+            async with session.get(
+                f"{self.base_url}/{region}/player/get_session",
+                params={
+                    "name": name,
+                },
+            ) as response:
+                if response.status == 200:
+                    "Игрок добавлен, попробуйте завтра снова"
+                elif response.status < 500:
+                    data = await response.json()
+                    return data["detail"]
+                else:
+                    log.error(await response.json())
                     return "Ошибка сервера"
 
     async def add_session(self, name: str, region: str):
@@ -70,6 +94,7 @@ class APIBackendServer:
                     data = await response.json()
                     return data["detail"]
                 else:
+                    log.error(await response.json())
                     return "Ошибка сервера"
 
     async def reset_session(self, session_id: str):
@@ -80,5 +105,7 @@ class APIBackendServer:
                 if response.status == 201:
                     data = await response.json()
                     return data["session_id"]
+
+                log.error(await response.json())
 
     async def login(self): ...
