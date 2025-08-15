@@ -1,4 +1,6 @@
-from src.models.model import RestUser
+import asyncio
+import re
+from src.models.model import RestUser, TopPlayer
 from src.config.settings import settings
 from aiohttp import ClientSession
 from loguru import logger as log
@@ -31,10 +33,14 @@ class APIBackendServer:
                 if response.status == 200:
                     data = await response.json()
                     return RestUser.model_validate(data)
-                elif response.status == 404:
+                elif response.status in [400, 404]:
                     data = await response.json()
-                    if data["detail"] in "Игрок не отслеживается с аргументами":
+                    if data["detail"].startswith(
+                        "Игрок не отслеживается с аргументами"
+                    ):
                         return await self.add_player(name, region)
+                    if data["detail"].startswith("Игрок не отслеживаеться так долго"):
+                        return "Попробуйте завтра снова"
                 elif response.status < 500:
                     data = await response.json()
                     return data["detail"]
@@ -50,8 +56,12 @@ class APIBackendServer:
                     "name": name,
                 },
             ) as response:
-                if response.status == 200:
-                    "Игрок добавлен, попробуйте завтра снова"
+                if response.status == 404:
+                    data = await response.json()
+                    if data["detail"].startswith(
+                        "Игрок не отслеживается с аргументами"
+                    ):
+                        return "Игрок добавлен, попробуйте завтра снова"
                 elif response.status < 500:
                     data = await response.json()
                     return data["detail"]
@@ -105,7 +115,32 @@ class APIBackendServer:
                 if response.status == 201:
                     data = await response.json()
                     return data["session_id"]
-
                 log.error(await response.json())
+
+    async def fetch_top(
+        self, session: ClientSession, base_url: str, parameter: str
+    ) -> list[TopPlayer] | None:
+        time = str(int((datetime.now() - timedelta(days=7)).timestamp()))
+        params = {
+            "limit": str(10),
+            "parameter": parameter,
+            "start_day": time,
+        }
+        async with session.get(f"{base_url}/top_players", params=params) as response:
+            if response.status == 200:
+                data = await response.json()
+                return [TopPlayer.model_validate(player) for player in data]
+            else:
+                log.error(f"{parameter} failed: {await response.text()}")
+                return None
+
+    async def get_top_rating(self) -> dict[str, list[TopPlayer] | None]:
+        async with ClientSession(headers=self.header) as session:
+            metrics = ["battles", "damage", "wins"]
+            tasks = [
+                self.fetch_top(session, self.base_url, metric) for metric in metrics
+            ]
+            results = await asyncio.gather(*tasks)
+            return dict(zip(metrics, results))
 
     async def login(self): ...

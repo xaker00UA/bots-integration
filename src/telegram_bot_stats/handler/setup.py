@@ -1,3 +1,4 @@
+from aiogram import Bot
 from .user_commands.player import player_router
 from aiogram.types import BotCommand
 
@@ -12,4 +13,6 @@ commands = [
     BotCommand(command="delete_session", description="Удалить сессию"),
     BotCommand(command="reset_session", description="Сбросить сессию"),
     BotCommand(command="get_session", description="Получить сессию по имени"),
+    BotCommand(command="top", description="Получить топ сервера"),
+    BotCommand(command="site", description="Ссылка на сайт"),
 ]

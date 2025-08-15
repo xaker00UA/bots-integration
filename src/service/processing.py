@@ -113,6 +113,11 @@ class ProcessingSession:
         embed = generate_player_stats_embed(response)
         return embed
 
+    @log_call
+    async def get_top_rating(self):
+        data = await self.api.get_top_rating()
+        return data
+
 
 class TelegramProcessing(ProcessingSession):
     def __init__(self) -> None:
@@ -174,3 +179,7 @@ class TelegramProcessing(ProcessingSession):
                 response = await self.api.get_session_by_id(primary_ses.session_id)
         text = self.service_generate_message.send_message(response)
         return text
+
+    async def get_top_rating(self):
+        data = await super().get_top_rating()
+        return self.service_generate_message.top_rating_player(data)

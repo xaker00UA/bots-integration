@@ -1,6 +1,6 @@
 import yaml
 import os
-from src.models.model import RestUser
+from src.models.model import RestUser, TopPlayer
 from datetime import datetime, timedelta
 
 
@@ -70,17 +70,29 @@ class GenerateStatsMessage:
         return dict(items)
 
     def render_rating(self, rating: dict) -> str:
-        if not rating:
+        if not rating.get("session", {}).get("rating"):
             return "❌ Нет данных о рейтинге."
+        session = rating.get("session", {}).get("rating")
+        now = rating.get("now", {}).get("rating")
         string = (
             "-----------------------------------------------\n"
             "🛡️<b>Рейтинг:</b>\n"
-            f"Бои: {rating.get('battles', 0)}\n"
-            f"Победы: {rating.get('winrate', 0)}%\n"
-            f"Урон: {rating.get('damage', 0)}\n"
-            f"Точность: {rating.get('accuracy', 0)}%\n"
-            f"Выживаемость: {rating.get('survival', 0)}%"
+            f"Бои: {session.get('battles', 0)}\n"
+            f"Победы: {session.get('winrate', 0)}%\n"
+            f"Урон: {session.get('damage', 0)}\n"
+            f"Точность: {session.get('accuracy', 0)}%\n"
+            f"Выживаемость: {session.get('survival', 0)}%\n\n"
         )
+        if now.get("number"):
+            string += (
+                f"Текущий рейтинг: {now.get("score")}\n"
+                f"Текущия позиция: {now.get("number")}\n"
+            )
+        if session.get("number"):
+            string += (
+                f"Поднял рейтинг: {session.get("score")}\n"
+                f"Поднял позицию: {session.get("number")}\n"
+            )
         return string
 
     def send_message(self, user: RestUser | str) -> str:
@@ -93,12 +105,23 @@ class GenerateStatsMessage:
         tanks_md = self.render_tanks(user.get("tanks", {}).get("session", []))
         data = self.flatten(user)
         data["tanks"] = tanks_md
-        data["rating"] = self.render_rating(
-            user.get("general", {}).get("session", {}).get("rating")
-        )
+        data["rating"] = self.render_rating(user.get("general", {}))
         template = self.response.get("get_session", "success")
         text = template.format_map(SafeFormatDict(data))
         return text
+
+    def top_rating_player(self, data: dict[str, list[TopPlayer] | None]):
+        string = "Топ рейтинг недели по {key}"
+        res = []
+        print(data)
+        for key, value in data.items():
+            if not value:
+                continue
+            res.append(string.format(key=key))
+            for i in value:
+                res.append(f"{i.name}: {i.value}")
+            res.append("\n")
+        return "\n".join(res)
 
 
 message_res = Responses(

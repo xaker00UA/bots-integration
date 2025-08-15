@@ -32,7 +32,14 @@ black = "^25.1.0"
 isort = "^6.0.1"
 datamodel-code-generator = {extras = ["http"], version = "^0.31.2"}
 poethepoet = "^0.36.0"
+mypy = "^1.17.1"
 
 
 [tool.poe.tasks]
 gen = "datamodel-codegen --url http://testserver.ua/openapi.json --encoding utf-8 --input-file-type openapi --output src/models/model.py  --target-python-version 3.12"
+
+[mypy]
+python_version = 3.13
+strict = true
+ignore_missing_imports = true
+disallow_untyped_defs = true

@@ -54,8 +54,8 @@ def generate_player_stats_embed(user: RestUser | str) -> Embed:
                 f"Побед: {user.general.session.rating.winrate}, "
                 f"Урон: {user.general.session.rating.damage}, "
                 f"Точность: {user.general.session.rating.accuracy}, "
-                f"Выживаемость: {user.general.session.rating.survival}"
-                f"Очки: {user.general.session.rating.score}"
+                f"Выживаемость: {user.general.session.rating.survival} "
+                f"Очки: {user.general.session.rating.score} "
                 f"Место: {user.general.session.rating.number}"
                 f"```"
             ),
@@ -66,7 +66,7 @@ def generate_player_stats_embed(user: RestUser | str) -> Embed:
         message.add_field(
             name="Рейтинг, текущий сезон:",
             value=f"```"
-            f"Очки: {user.general.now.rating.score}"  # type: ignore
+            f"Очки: {user.general.now.rating.score} "  # type: ignore
             f"Место: {user.general.now.rating.number}"  # type: ignore
             f"```",
             inline=False,

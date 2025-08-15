@@ -1,6 +1,7 @@
 from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
+from src.config.settings import settings
 from src.telegram_bot_stats.keyboards.session import session_keyboards, add_button
 from src.service.processing import TelegramProcessing
 import re
@@ -135,3 +136,15 @@ async def callback_action(callback: CallbackQuery, action: str, session_id: int)
 
         case _:
             ValueError("Неизвестное действие")
+
+
+@player_router.message(Command("top"))
+async def top_rating(message: Message):
+    sent = await message.answer("Формируем топ...")
+    text = await TelegramProcessing().get_top_rating()
+    await sent.edit_text(text=text, parse_mode="HTML")
+
+
+@player_router.message(Command("site"))
+async def site(message: Message):
+    await message.answer(text=settings.FRONTEND.FRONTEND_URL, parse_mode="HTML")
